@@ -4,6 +4,8 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 // You will need to create a .env file in the root directory and add these variables
+console.log("Vercel Build Check - Firebase API Key is:", import.meta.env.VITE_FIREBASE_API_KEY ? "Present ✅" : "Missing ❌");
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "dummy-api-key",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "dummy-auth-domain.firebaseapp.com",
