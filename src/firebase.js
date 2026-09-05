@@ -2,17 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
-// You will need to create a .env file in the root directory and add these variables
-console.log("Vercel Build Check - Firebase API Key is:", import.meta.env.VITE_FIREBASE_API_KEY ? "Present ✅" : "Missing ❌");
-
+// Firebase web API keys are safe to expose in the client bundle
+// Security is enforced via Firestore Security Rules, not by hiding these keys
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "dummy-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "dummy-auth-domain.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "dummy-project-id",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "dummy-storage-bucket.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "00000000000",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:00000000000:web:00000000000"
+  apiKey: "AIzaSyDmzJMQ3XucPQA-yjHTNCmnpAZYQFG_vGA",
+  authDomain: "pet-zone-f5611.firebaseapp.com",
+  projectId: "pet-zone-f5611",
+  storageBucket: "pet-zone-f5611.firebasestorage.app",
+  messagingSenderId: "908881812128",
+  appId: "1:908881812128:web:38b86e5e08265453d9c7c5"
 };
 
 // Initialize Firebase
