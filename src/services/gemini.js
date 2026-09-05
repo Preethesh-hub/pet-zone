@@ -36,6 +36,6 @@ export const sendMessageToAI = async (message) => {
     return result.response.text();
   } catch (error) {
     console.error("Gemini AI Error:", error);
-    throw new Error("Sorry, the AI Assistant is currently unavailable. Please try again later.");
+    throw new Error(error.message || "Sorry, the AI Assistant is currently unavailable.");
   }
 };
