@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, ArrowLeft, Crown, Check, X } from 'lucide-react';
+import { Settings as SettingsIcon, ArrowLeft, Crown, Check, X, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { upgradeUserToPremium, cancelPremium } from '../services/db';
+import { createPaymentToken, verifyAndActivatePremium, cancelPremium } from '../services/db';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { currentUser, isPremium, setIsPremium } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [paymentToken, setPaymentToken] = useState(null);
+  const [verifyError, setVerifyError] = useState('');
 
   const handleCancelPremium = async () => {
     if (window.confirm("Are you sure you want to cancel Premium? You will lose unlimited pets and listings, but you keep what you already have.")) {
@@ -19,13 +21,36 @@ export default function Settings() {
     }
   };
 
-  const handleMockPayment = async () => {
+  const handleOpenUpgradeModal = async () => {
+    setVerifyError('');
+    setShowUpgradeModal(true);
+    // Generate a secure one-time token tied to this user
+    try {
+      const token = await createPaymentToken(currentUser.uid);
+      setPaymentToken(token);
+    } catch (err) {
+      setVerifyError('Failed to initialize payment. Please try again.');
+    }
+  };
+
+  const handleActivatePremium = async () => {
+    if (!paymentToken) {
+      setVerifyError('Payment session expired. Please close and try again.');
+      return;
+    }
     setLoading(true);
-    await upgradeUserToPremium(currentUser.uid);
-    setIsPremium(true);
-    setLoading(false);
-    setShowUpgradeModal(false);
-    navigate('/dashboard?upgraded=true');
+    setVerifyError('');
+    try {
+      await verifyAndActivatePremium(paymentToken, currentUser.uid);
+      setIsPremium(true);
+      setLoading(false);
+      setShowUpgradeModal(false);
+      setPaymentToken(null);
+      navigate('/dashboard?upgraded=true');
+    } catch (err) {
+      setVerifyError(err.message || 'Verification failed. Please contact support.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,7 +118,7 @@ export default function Settings() {
                 {loading ? 'Canceling...' : 'Cancel Subscription'}
               </button>
             ) : (
-              <button className="btn btn-primary" onClick={() => setShowUpgradeModal(true)} style={{ background: '#f59e0b', borderColor: '#f59e0b' }}>
+              <button className="btn btn-primary" onClick={handleOpenUpgradeModal} style={{ background: '#f59e0b', borderColor: '#f59e0b' }}>
                 Upgrade to Premium (₹149/mo)
               </button>
             )}
@@ -130,18 +155,23 @@ export default function Settings() {
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-secondary" onClick={() => setShowUpgradeModal(false)} style={{ flex: 1 }}>
+              <button className="btn btn-secondary" onClick={() => { setShowUpgradeModal(false); setVerifyError(''); }} style={{ flex: 1 }}>
                 Cancel
               </button>
               <button 
                 className="btn btn-primary" 
-                onClick={handleMockPayment} 
-                disabled={loading} 
+                onClick={handleActivatePremium} 
+                disabled={loading || !paymentToken} 
                 style={{ flex: 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', fontWeight: 'bold' }}
               >
-                {loading ? 'Activating...' : '✅ I have Paid — Activate PRO'}
+                {loading ? 'Verifying...' : '✅ I have Paid — Activate PRO'}
               </button>
             </div>
+            {verifyError && (
+              <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '1rem', marginBottom: 0 }}>
+                ⚠️ {verifyError}
+              </p>
+            )}
           </div>
         </div>
       )}

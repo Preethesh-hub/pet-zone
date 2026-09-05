@@ -22,6 +22,7 @@ const listingsCol = collection(db, 'listings');
 const chatsCol = collection(db, 'chats');
 const reportsCol = collection(db, 'reports');
 const usersCol = collection(db, 'users');
+const paymentTokensCol = collection(db, 'paymentTokens');
 
 // ========================
 // User Profiles (Premium)
@@ -66,6 +67,55 @@ export async function cancelPremium(userId) {
     await updateDoc(docRef, { isPremium: false });
   } catch (error) {
     console.error("Error canceling premium: ", error);
+    throw error;
+  }
+}
+
+// ========================
+// Secure Payment Tokens
+// ========================
+
+// Creates a one-time token tied to a user. Returned to Settings page.
+export async function createPaymentToken(userId) {
+  try {
+    // Invalidate any old pending tokens for this user first
+    const q = query(paymentTokensCol, where('userId', '==', userId), where('used', '==', false));
+    const existing = await getDocs(q);
+    existing.forEach(async (d) => await deleteDoc(d.ref));
+
+    const tokenDoc = await addDoc(paymentTokensCol, {
+      userId,
+      used: false,
+      createdAt: serverTimestamp()
+    });
+    return tokenDoc.id; // This ID IS the token
+  } catch (error) {
+    console.error("Error creating payment token: ", error);
+    throw error;
+  }
+}
+
+// Verifies the token belongs to the user, hasn't been used, and activates premium.
+export async function verifyAndActivatePremium(token, userId) {
+  try {
+    const tokenRef = doc(db, 'paymentTokens', token);
+    const tokenSnap = await getDoc(tokenRef);
+
+    if (!tokenSnap.exists()) throw new Error('Invalid payment token.');
+    const data = tokenSnap.data();
+    if (data.used) throw new Error('This token has already been used.');
+    if (data.userId !== userId) throw new Error('Token does not belong to this user.');
+
+    // Mark token as used (one-time use)
+    await updateDoc(tokenRef, { used: true });
+
+    // Now safely upgrade the user
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { isPremium: true });
+
+    return true;
+  } catch (error) {
+    console.error("Payment verification failed: ", error.message);
     throw error;
   }
 }

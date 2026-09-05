@@ -47,5 +47,15 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.resource.data.reporterId == request.auth.uid;
       allow read, update, delete: if false;
     }
+
+    // 5. Payment Tokens (one-time use, user-scoped)
+    match /paymentTokens/{tokenId} {
+      // Only the token owner can read or update (mark as used)
+      allow read, update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Only authenticated users can create a token for themselves
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Tokens cannot be deleted by users (only expire)
+      allow delete: if false;
+    }
   }
 }
