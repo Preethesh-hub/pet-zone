@@ -9,6 +9,7 @@ import Clinics from './pages/Clinics';
 import Marketplace from './pages/Marketplace';
 import Messages from './pages/Messages';
 import Settings from './pages/Settings';
+import GeminiChatWidget from './components/GeminiChatWidget';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
           {/* Public Route */}
           <Route path="/qr/:id" element={<PublicProfile />} />
         </Routes>
+        <GeminiChatWidget />
       </Router>
     </AuthProvider>
   );
