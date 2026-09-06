@@ -9,6 +9,8 @@ import Clinics from './pages/Clinics';
 import Marketplace from './pages/Marketplace';
 import Messages from './pages/Messages';
 import Settings from './pages/Settings';
+import Community from './pages/Community';
+import Appointments from './pages/Appointments';
 import GeminiChatWidget from './components/GeminiChatWidget';
 
 function App() {
@@ -72,6 +74,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Settings />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/community" 
+            element={
+              <PrivateRoute>
+                <Community />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/appointments" 
+            element={
+              <PrivateRoute>
+                <Appointments />
               </PrivateRoute>
             } 
           />

@@ -140,6 +140,12 @@ export default function Clinics() {
                       >
                         <Navigation2 size={16} /> Directions
                       </a>
+                      <button 
+                        className="btn btn-secondary share-btn-small"
+                        onClick={() => navigate('/appointments')}
+                      >
+                        Book
+                      </button>
                     </div>
                   </div>
                 ))

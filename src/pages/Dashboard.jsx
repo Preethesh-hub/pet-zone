@@ -4,6 +4,7 @@ import { Plus, Settings, LogOut, PawPrint, MapPin, Store, MessageSquare, Crown, 
 import { useAuth } from '../contexts/AuthContext';
 import { getUserPets } from '../services/db';
 import AddPetModal from '../components/AddPetModal';
+import { motion } from 'framer-motion';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -51,7 +52,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
+    <motion.div 
+      className="dashboard-container"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+    >
       {/* Sidebar / Topbar */}
       <header className="dashboard-header glass-panel">
         <div className="brand">
@@ -151,6 +158,10 @@ export default function Dashboard() {
               <Store size={18} />
               Marketplace
             </button>
+            <button className="btn btn-secondary" onClick={() => navigate('/community')}>
+              <Sparkles size={18} />
+              Community
+            </button>
             <button className="btn btn-secondary" onClick={() => navigate('/messages')}>
               <MessageSquare size={18} />
               My Messages
@@ -224,6 +235,6 @@ export default function Dashboard() {
         onClose={() => setIsModalOpen(false)} 
         onPetAdded={(newPet) => setPets([...pets, newPet])} 
       />
-    </div>
+    </motion.div>
   );
 }

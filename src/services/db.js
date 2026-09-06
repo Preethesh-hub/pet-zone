@@ -315,3 +315,140 @@ export async function getUserChats(userId) {
     throw error;
   }
 }
+
+// ========================
+// Pet Health Tracker
+// ========================
+
+export async function addPetRecord(petId, type, data) {
+  try {
+    const recordCol = collection(db, `pets/${petId}/records`);
+    const docRef = await addDoc(recordCol, {
+      ...data,
+      type, // 'vaccine', 'weight', 'symptom'
+      createdAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...data, type };
+  } catch (error) {
+    console.error("Error adding pet record: ", error);
+    throw error;
+  }
+}
+
+export async function getPetRecords(petId, type) {
+  try {
+    const recordCol = collection(db, `pets/${petId}/records`);
+    const q = query(recordCol, where("type", "==", type), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    const records = [];
+    querySnapshot.forEach((doc) => {
+      records.push({ id: doc.id, ...doc.data() });
+    });
+    return records;
+  } catch (error) {
+    console.error(`Error getting ${type} records: `, error);
+    return []; // Return empty on index errors or empty collections
+  }
+}
+
+// ========================
+// Appointments
+// ========================
+
+export async function addAppointment(appointmentData) {
+  try {
+    const apptsCol = collection(db, 'appointments');
+    const docRef = await addDoc(apptsCol, {
+      ...appointmentData,
+      createdAt: serverTimestamp()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error booking appointment: ", error);
+    throw error;
+  }
+}
+
+export async function getUserAppointments(userId) {
+  try {
+    const apptsCol = collection(db, 'appointments');
+    const q = query(apptsCol, where("userId", "==", userId), orderBy("date", "asc"));
+    const querySnapshot = await getDocs(q);
+    const appts = [];
+    querySnapshot.forEach((doc) => {
+      appts.push({ id: doc.id, ...doc.data() });
+    });
+    return appts;
+  } catch (error) {
+    console.error("Error getting appointments: ", error);
+    return [];
+  }
+}
+
+// ========================
+// Community Forum
+// ========================
+
+export async function addPost(postData) {
+  try {
+    const postsCol = collection(db, 'posts');
+    const docRef = await addDoc(postsCol, {
+      ...postData,
+      upvotes: 0,
+      createdAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...postData, upvotes: 0 };
+  } catch (error) {
+    console.error("Error creating post: ", error);
+    throw error;
+  }
+}
+
+export async function getPosts(category = 'All') {
+  try {
+    const postsCol = collection(db, 'posts');
+    let q = query(postsCol, orderBy("createdAt", "desc"));
+    if (category !== 'All') {
+      q = query(postsCol, where("category", "==", category), orderBy("createdAt", "desc"));
+    }
+    const querySnapshot = await getDocs(q);
+    const posts = [];
+    querySnapshot.forEach((doc) => {
+      posts.push({ id: doc.id, ...doc.data() });
+    });
+    return posts;
+  } catch (error) {
+    console.error("Error getting posts: ", error);
+    return [];
+  }
+}
+
+export async function addComment(postId, commentData) {
+  try {
+    const commentsCol = collection(db, 'comments');
+    await addDoc(commentsCol, {
+      ...commentData,
+      postId,
+      createdAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding comment: ", error);
+    throw error;
+  }
+}
+
+export async function getCommentsForPost(postId) {
+  try {
+    const commentsCol = collection(db, 'comments');
+    const q = query(commentsCol, where("postId", "==", postId), orderBy("createdAt", "asc"));
+    const querySnapshot = await getDocs(q);
+    const comments = [];
+    querySnapshot.forEach((doc) => {
+      comments.push({ id: doc.id, ...doc.data() });
+    });
+    return comments;
+  } catch (error) {
+    console.error("Error getting comments: ", error);
+    return [];
+  }
+}

@@ -14,48 +14,66 @@ service cloud.firestore {
 
     // 1. Pets Collection
     match /pets/{petId} {
-      // Anyone logged in can view pets (for public profiles or marketplace)
       allow read: if isAuthenticated();
-      // Only the owner can create, update, or delete their pets
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      
+      // Pet Health Records (Subcollection)
+      match /records/{recordId} {
+        // Only the pet owner can read, create, update, or delete records
+        allow read, write: if isAuthenticated() && isOwner(get(/databases/$(database)/documents/pets/$(petId)).data.userId);
+      }
     }
     
     // 2. Marketplace Listings
     match /listings/{listingId} {
-      // Anyone logged in can view listings
       allow read: if isAuthenticated();
-      // Only the seller can create a listing, and they must use their own ID
       allow create: if isAuthenticated() && request.resource.data.sellerId == request.auth.uid;
-      // Only the seller can update (e.g. mark as sold) or delete their listing
       allow update, delete: if isAuthenticated() && isOwner(resource.data.sellerId);
     }
     
     // 3. Chats (In-App Messaging)
     match /chats/{chatId} {
-      // A user can only read or update a chat if their ID is in the participants array
       allow read, update: if isAuthenticated() && request.auth.uid in resource.data.participants;
-      // Anyone logged in can start a new chat, but their ID must be in the participants array
       allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participants;
-      // Chats cannot be deleted
       allow delete: if false;
     }
     
     // 4. Reports
     match /reports/{reportId} {
-      // Users can only create reports, they cannot read them (only admins can read via Firebase Console)
       allow create: if isAuthenticated() && request.resource.data.reporterId == request.auth.uid;
       allow read, update, delete: if false;
     }
 
     // 5. Payment Tokens (one-time use, user-scoped)
     match /paymentTokens/{tokenId} {
-      // Only the token owner can read or update (mark as used)
       allow read, update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      // Only authenticated users can create a token for themselves
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      // Tokens cannot be deleted by users (only expire)
       allow delete: if false;
+    }
+
+    // 6. Appointments
+    match /appointments/{appointmentId} {
+      // Users can only see and manage their own appointments
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // 7. Community Posts
+    match /posts/{postId} {
+      // Anyone logged in can read posts
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.authorId);
+    }
+
+    // 8. Community Comments
+    match /comments/{commentId} {
+      // Anyone logged in can read comments
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.authorId);
     }
   }
 }
