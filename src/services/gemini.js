@@ -11,7 +11,7 @@ if (apiKey) {
   genAI = new GoogleGenerativeAI(apiKey);
   // We use flash for fast text generation
   model = genAI.getGenerativeModel({ 
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.6-flash',
     systemInstruction: "You are an expert AI veterinarian assistant inside the PetZone app. Provide helpful, concise advice for pet health, diet, and training. Always end your responses with a disclaimer to consult a real vet for serious medical emergencies. Keep your answers brief and easy to read."
   });
 }
@@ -21,7 +21,7 @@ let chatSession = null;
 
 export const sendMessageToAI = async (message) => {
   if (!apiKey) {
-    throw new Error('Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your .env file or Vercel config.');
+    return "It looks like the Gemini API key is missing. Please add `VITE_GEMINI_API_KEY` to your `.env` file to enable the AI Vet Assistant. For now, I'm just a mock response! 🐾";
   }
   
   try {
@@ -36,6 +36,6 @@ export const sendMessageToAI = async (message) => {
     return result.response.text();
   } catch (error) {
     console.error("Gemini AI Error:", error);
-    throw new Error(error.message || "Sorry, the AI Assistant is currently unavailable.");
+    return "I'm currently unable to connect to my AI brain. Please check your Gemini API key in the `.env` file, ensure it is valid, and verify you haven't exceeded your quota. 🐾";
   }
 };
